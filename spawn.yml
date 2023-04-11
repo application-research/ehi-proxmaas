@@ -2,15 +2,16 @@
 - name: Proxmox spawn test
   hosts: proxmox_clients
 
-- name: Create VM with 1 10GB SATA disk and an EFI disk, with Secure Boot enabled by default
-  community.general.proxmox_kvm:
-    api_user: "{{ proxmox_user }}"
-    api_password: "{{ proxmox_password }}"
-    api_host: proxmox.estuary.tech
-    name: dev-maas-test00
-    node: apollo
-    scsi:
-      scsi0: 'vm-storage:15,format=raw'
-    net:
-      net0: 'virtio,mtu=1'
-    bios: ovmf
+  tasks:
+    - name: Create VM with 1 10GB SATA disk and an EFI disk, with Secure Boot enabled by default
+      community.general.proxmox_kvm:
+        api_user: "{{ proxmox_user }}"
+        api_password: "{{ proxmox_password }}"
+        api_host: proxmox.estuary.tech
+        name: dev-maas-test00
+        node: apollo
+        scsi:
+          scsi0: 'vm-storage:15,format=raw'
+        net:
+          net0: 'virtio,mtu=1'
+        bios: ovmf
