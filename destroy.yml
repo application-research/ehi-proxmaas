@@ -1,0 +1,38 @@
+---
+- name: Proxmox spawn test
+  hosts: proxmox_clients
+
+  vars_files:
+    - "vars/secrets.yml"
+
+  vars_prompt:
+    - name: "starting_number"
+      prompt: "Enter the starting number for the VMs you want to destroy. PERMANENTLY!"
+      private: false
+    - name: "vm_count"
+      prompt: "Enter the number of VMs you want to destroy, from the starting number upwards"
+      private: false
+    - name: "vm_name"
+      prompt: "Enter the name of the VMs you want to destroy. (minus the number at the end)"
+      private: false
+    - name: "amireallysure"
+      prompt: "Enter YESIAMSURE to continue, or anything else to fail and cancel."
+      private: false
+
+  tasks:
+    - name: Assert that amireallysure == YESIAMSURE
+      ansible.builtin.assert:
+        that:
+          - amireallysure == "YESIAMSURE"
+
+    - name: Destroy the requested VMs
+      community.general.proxmox_kvm:
+        api_user: "{{ proxmox_user }}"
+        api_token_id: "{{ proxmox_token_id }}"
+        api_token_secret: "{{ proxmox_token_secret }}"
+        # api_password: "{{ proxmox_password }}"
+        api_host: proxmox.estuary.tech
+        name: "{{ vm_name }}{{ '%02d' | format(item) }}"
+        state: absent
+      loop: "{{ range((starting_number | int), ((starting_number | int) + (vm_count | int))) | list }}"
+      register: vm_result

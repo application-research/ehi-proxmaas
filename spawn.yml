@@ -5,19 +5,32 @@
   vars_files:
     - "vars/secrets.yml"
 
+  vars_prompt:
+    - name: "starting_number"
+      prompt: "Enter the starting number for the VMs (e.g. 01 if it's a new deployment, 04 if there are already 3 machines, etc.)"
+      private: false
+    - name: "vm_count"
+      prompt: "Enter the number of VMs you want to create"
+      private: false
+    - name: "vm_name"
+      prompt: "Enter the name of the VMs you want to create (minus the number at the end)"
+      private: false
+
   tasks:
-    - name: Create a test VM
+    - name: Create the requested VMs
       community.general.proxmox_kvm:
         api_user: "{{ proxmox_user }}"
-        api_password: "{{ proxmox_password }}"
+        api_token_id: "{{ proxmox_token_id }}"
+        api_token_secret: "{{ proxmox_token_secret }}"
+        # api_password: "{{ proxmox_password }}"
         api_host: proxmox.estuary.tech
-        name: dev-maas-test00
+        name: "{{ vm_name }}{{ '%02d' | format(item) }}"
         memory: 2048
         cores: 2
         description: "A test VM spawned by EHI Cloudy Dreams."
         onboot: false
         cpu: host
-        node: apollo
+        node: "{{ proxmox_nodes[item % 8] }}"
         scsi:
           scsi0: 'vm-storage:15,format=raw'
         net:
@@ -28,11 +41,49 @@
           format: raw
           efitype: 4m
           pre_enrolled_keys: false
+      loop: "{{ range((starting_number | int), ((starting_number | int) + (vm_count | int))) | list }}"
+      register: vm_result
 
-    - name: Start the test VM
+    - name: Sleep for 10 seconds to let VMs spawn in
+      ansible.builtin.pause:
+        seconds: 10
+
+    - name: Start the test VM # noqa no-handler
       community.general.proxmox_kvm:
         api_user: "{{ proxmox_user }}"
-        api_password: "{{ proxmox_password }}"
+        api_token_id: "{{ proxmox_token_id }}"
+        api_token_secret: "{{ proxmox_token_secret }}"
+        # api_password: "{{ proxmox_password }}"
         api_host: proxmox.estuary.tech
-        name: dev-maas-test00
+        name: "{{ vm_name }}{{ '%02d' | format(item.item) }}"
         state: started
+      loop: "{{ vm_result.results }}"
+      when: item is changed
+
+    - name: Create an empty dictionary for MAC addresses
+      ansible.builtin.set_fact:
+        vmid_to_mac: {}
+
+    - name: Extract vmid, mac, and name for each item in vm_result.results
+      ansible.builtin.set_fact:
+        vm_details: "{{ vm_details | combine({item.vmid: {'name': item.invocation.module_args.name, 'mac': item.mac}}) }}"
+      loop: "{{ vm_result.results }}"
+      loop_control:
+        label: "Extracting vmid, mac, and name from vm_result for VMID {{ item.vmid }}"
+
+    - name: Display the vm_details dictionary
+      ansible.builtin.debug:
+        var: vm_details
+
+    # - name: Wait for 30 seconds before proceeding
+    #   ansible.builtin.pause:
+    #     seconds: 30
+
+    # - name: Gather VM MAC addresses and other details
+    #   community.general.proxmox_kvm_facts:
+    #     api_user: "{{ proxmox_user }}"
+    #     api_password: "{{ proxmox_password }}"
+    #     api_host: proxmox.estuary.tech
+    #     name: "{{ item.item }}"
+    #   loop: "{{ vm_result.results }}"
+    #   register: vm_facts
