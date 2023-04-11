@@ -1,0 +1,5 @@
+---
+# Don't give away the Proxmox credentials :)
+# Or the MAAS ones!
+vars/secret.yml
+vars/secrets.yml
