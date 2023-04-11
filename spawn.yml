@@ -23,11 +23,11 @@
         net:
           net0: 'bridge=vmbr0,virtio,mtu=1,firewall=1'
         bios: ovmf
-      efidisk0:
-        storage: vm-storage
-        format: raw
-        efitype: 4m
-        pre_enrolled_keys: false
+        efidisk0:
+          storage: vm-storage
+          format: raw
+          efitype: 4m
+          pre_enrolled_keys: false
 
     - name: Start the test VM
       community.general.proxmox_kvm:
