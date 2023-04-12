@@ -28,6 +28,7 @@
         name: "{{ vm_name }}{{ '%02d' | format(item) }}"
         memory: "{{ amount_of_memory }}"
         cores: "{{ number_of_vcpus }}"
+        agent: true
         description: "A test VM spawned by EHI Cloudy Dreams."
         onboot: false
 	# Set machines to boot from network first, then hard disk
