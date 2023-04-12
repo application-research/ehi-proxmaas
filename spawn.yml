@@ -16,29 +16,55 @@
         that:
           # Do not continue if we have both list_of_ips and ip_range defined at the same time
           - not (list_of_ips is defined and ip_range is defined)
+          # Make sure relevant options are set as strings to avoid "1" being interpreted as "true"
+          - not (starting_number is defined and starting_number is not string) and amount_of_memory is string and number_of_vcpus is string
 
     - name: Set the starting number for the VMs
       ansible.builtin.pause:
         prompt: "Enter the starting number for the VMs (e.g. 01 if it's a new deployment, 04 if there are already 3 machines, etc.)"
-      register: starting_number
+      register: temp_starting_number
       when: starting_number is not defined
 
-    - name: Calculate the number of VMs to create if we have a list of IPs
+    - name: Set starting_number based on given user input
       ansible.builtin.set_fact:
-        vm_count: "{{ vm_ips | length }}"
-      when: list_of_ips is defined
+        starting_number: "{{ temp_starting_number.input }}"
+      when: temp_starting_number is defined and temp_starting_number.input is defined
 
     - name: Dynamically build list_of_ips if we have a range of IPs
       ansible.builtin.set_fact:
-        list_of_ips: "{{ list_of_ips | default([]) + (item.start | ipaddr('range', item.end)) }}"
+        list_of_ips: "{{ list_of_ips | default([]) + (item.start | ip_list_from_range(item.end)) }}"
       loop: "{{ ip_range }}"
       when: list_of_ips is not defined
+
+    - name: Calculate the number of VMs to create if we have a list of IPs
+      ansible.builtin.set_fact:
+        vm_count: "{{ list_of_ips | length }}"
+      when: list_of_ips is defined
+
+    - name: Dynamically calculate the number of VMs to create when we have a list of IPs
+      ansible.builtin.set_fact:
+        vm_count: "{{ list_of_ips | length }}"
+      when: list_of_ips is defined
 
     - name: Set the number of VMs to create
       ansible.builtin.pause:
         prompt: "Enter the number of VMs you want to create"
-      register: vm_count
+      register: temp_vm_count
       when: vm_count is not defined and list_of_ips is not defined
+
+    - name: Set starting_number based on given user input
+      ansible.builtin.set_fact:
+        starting_number: "{{ temp_vm_count.input }}"
+      when: temp_vm_count is defined and temp_vm_count.input is defined
+
+    - name: Create a list of VM names
+      ansible.builtin.set_fact:
+        vm_names: "{{ vm_names | default([]) + [vm_name ~ '%02d' | format(item)] }}"
+      loop: "{{ range(starting_number | int, vm_count | int + starting_number | int) | list }}"
+
+    - name: Display the list of VM names
+      ansible.builtin.debug:
+        msg: "We will be creating the following VMs: {{ vm_names }}"
 
     - name: Create the requested VMs
       community.general.proxmox_kvm:
@@ -68,7 +94,7 @@
           format: raw
           efitype: 4m
           pre_enrolled_keys: false
-      loop: "{{ range((starting_number | int), ((starting_number | int) + (vm_count | int))) | list }}"
+      loop: "{{ range(starting_number | int, vm_count | int + starting_number | int) | list }}"
       register: vm_result
 
     - name: Sleep for 10 seconds to let VMs spawn in
@@ -98,6 +124,27 @@
       loop: "{{ vm_result.results }}"
       loop_control:
         label: "Extracting vmid, mac, and name from vm_result for VMID {{ item.vmid }}"
+
+    # - name: Update vm_details with IP address if list_of_ips is defined
+    #   ansible.builtin.set_fact:
+    #     vm_details: "{{ vm_details | combine({item.vmid: {'name': item.name, 'mac': item.mac, 'ip': list_of_ips[loop.index0]}}) }}"
+    #   loop: "{{ vm_result.results }}"
+    #   when: list_of_ips is defined
+
+    - name: Add IP address to vm_details
+      ansible.builtin.set_fact:
+        vm_details: "{{ vm_details | combine({item.0.key: item.0.value | combine({'ipv4': item.1})}, recursive=True) }}"
+      loop: "{{ (vm_details | dict2items | list) | zip(list_of_ips) }}"
+      loop_control:
+        label: "{{ item.0.key }}"
+
+    - name: Display combined vm_details
+      ansible.builtin.debug:
+        var: vm_details
+
+    - name: Print entire list of vm_details
+      ansible.builtin.debug:
+        var: vm_details
 
     - name: Display the vm_details dictionary
       ansible.builtin.debug:

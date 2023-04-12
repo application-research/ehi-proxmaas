@@ -55,6 +55,10 @@ for vm_key in vm_details:
     "power_vm_name": vm_key,
     "power_verify_ssl": "n"
     })
+    # If vm_details[vm_key] contains an ipv4 address, set it by recreating ens18 (TODO: make this more generic by targeting more than just ens18)
+    if "ipv4" in vm:
+        machine.ip_addresses = [ vm["ipv4"]["net0"] ]
+        new_phy = machine.interfaces.create(mac_address="00:11:22:aa:bb:cc")
     machine.save()
     # Check the power on the machine to update its BMC status
     machine.query_power_state()
