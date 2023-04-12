@@ -30,6 +30,8 @@
         cores: "{{ number_of_vcpus }}"
         description: "A test VM spawned by EHI Cloudy Dreams."
         onboot: false
+	# Set machines to boot from network first, then hard disk
+        boot: nc
         cpu: host
         node: "{{ proxmox_nodes[item % 8] }}"
         scsihw: "virtio-scsi-single"
