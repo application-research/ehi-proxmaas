@@ -94,6 +94,12 @@
     - name: Wait for 180 seconds before proceeding
       ansible.builtin.pause:
         seconds: 180
+      when: not (wait_for_user | default(false))
+
+    - name: Wait until the user says it's okay to continue
+      ansible.builtin.pause:
+        prompt: "Please make any required IP changes to your nodes inside MAAS, then press enter when ready"
+      when: (wait_for_user | default(false))
 
     - name: Run custom MAAS poker to deploy the nodes
       ansible.builtin.script: >
