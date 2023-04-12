@@ -13,19 +13,11 @@
 #     }
 # }
 
-#GET /MAAS/api/2.0/devices/
-# param mac_address
-
-#POST /MAAS/api/2.0/devices/
-# param mac_address
-# param hostname
 import configparser
 import os
 from os.path import expanduser
 from oauthlib.oauth1 import SIGNATURE_PLAINTEXT
 from requests_oauthlib import OAuth1Session
-
-os.environ['REQUESTS_CA_BUNDLE'] = '/home/wings/projects/ehi-cloudy-dreams/isrgrootx1.pem'
 
 MAAS_HOST = "https://maas.estuary.tech/MAAS"
 config = configparser.ConfigParser()

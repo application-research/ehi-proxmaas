@@ -24,6 +24,7 @@
         api_token_secret: "{{ proxmox_token_secret }}"
         # api_password: "{{ proxmox_password }}"
         api_host: proxmox.estuary.tech
+        timeout: 60
         name: "{{ vm_name }}{{ '%02d' | format(item) }}"
         memory: 2048
         cores: 2
@@ -55,6 +56,7 @@
         api_token_secret: "{{ proxmox_token_secret }}"
         # api_password: "{{ proxmox_password }}"
         api_host: proxmox.estuary.tech
+        timeout: 60
         name: "{{ vm_name }}{{ '%02d' | format(item.item) }}"
         state: started
       loop: "{{ vm_result.results }}"
@@ -62,7 +64,7 @@
 
     - name: Create an empty dictionary for MAC addresses
       ansible.builtin.set_fact:
-        vmid_to_mac: {}
+        vm_details: {}
 
     - name: Extract vmid, mac, and name for each item in vm_result.results
       ansible.builtin.set_fact:
