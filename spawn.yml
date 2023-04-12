@@ -26,15 +26,14 @@
         api_host: proxmox.estuary.tech
         timeout: 60
         name: "{{ vm_name }}{{ '%02d' | format(item) }}"
-        memory: 2048
-        cores: 2
+        memory: "{{ amount_of_memory }}"
+        cores: "{{ number_of_vcpus }}"
         description: "A test VM spawned by EHI Cloudy Dreams."
         onboot: false
         cpu: host
         node: "{{ proxmox_nodes[item % 8] }}"
         scsihw: "virtio-scsi-single"
-        scsi:
-          scsi0: 'vm-storage:15,format=raw'
+        scsi: "{{ scsi_disk_layout }}"
         net:
           net0: 'bridge=vmbr0,virtio,mtu=1,firewall=1'
         bios: ovmf
