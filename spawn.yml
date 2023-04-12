@@ -18,23 +18,25 @@
           - not (list_of_ips is defined and ip_range is defined)
 
     - name: Set the starting number for the VMs
-      prompt: "Enter the starting number for the VMs (e.g. 01 if it's a new deployment, 04 if there are already 3 machines, etc.)"
+      ansible.builtin.pause:
+        prompt: "Enter the starting number for the VMs (e.g. 01 if it's a new deployment, 04 if there are already 3 machines, etc.)"
       register: starting_number
       when: starting_number is not defined
 
     - name: Calculate the number of VMs to create if we have a list of IPs
-      set_fact:
+      ansible.builtin.set_fact:
         vm_count: "{{ vm_ips | length }}"
       when: list_of_ips is defined
 
     - name: Dynamically build list_of_ips if we have a range of IPs
-      set_fact:
+      ansible.builtin.set_fact:
         list_of_ips: "{{ list_of_ips | default([]) + (item.start | ipaddr('range', item.end)) }}"
       loop: "{{ ip_range }}"
       when: list_of_ips is not defined
-      
+
     - name: Set the number of VMs to create
-      prompt: "Enter the number of VMs you want to create"
+      ansible.builtin.pause:
+        prompt: "Enter the number of VMs you want to create"
       register: vm_count
       when: vm_count is not defined and list_of_ips is not defined
 

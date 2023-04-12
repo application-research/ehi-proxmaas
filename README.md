@@ -27,7 +27,7 @@ We have left open the possibility of defining multiple ranges of IP addresses. A
 For example, instead of
 
 ```
-list_of_ips:
+ip_range:
   - start: 10.24.10.101
     end: 10.24.10.103
 ```
@@ -35,7 +35,7 @@ list_of_ips:
 You might instead define
 
 ```
-list_of_ips:
+ip_range:
   - start: 10.24.10.101
     end: 10.24.10.103
   - start: 10.24.100.101
