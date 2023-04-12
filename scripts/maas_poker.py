@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
 # pokes MAAS
 
-# TASK [Display the vmid_to_mac dictionary] **********************************************************
 # ok: [localhost] => {
-#     "vmid_to_mac": {
+#     "vm_details": {
 #         "133": {
-#             "net0": "A2:F2:24:9A:6C:0F"
+#             "mac": {
+#                 "net0": "F6:59:F9:7F:AF:48"
+#             },
+#             "name": "dev-test01"
 #         },
 #         "134": {
-#             "net0": "7E:ED:FE:67:F2:75"
+#             "mac": {
+#                 "net0": "32:8C:68:96:BE:F2"
+#             },
+#             "name": "dev-test02"
 #         }
 #     }
 # }
+
 
 import configparser
 import os
@@ -27,7 +33,7 @@ CONSUMER_KEY, CONSUMER_TOKEN, SECRET = config["maas_api"]["api_key"].split(":")
 
 maas = OAuth1Session(CONSUMER_KEY, resource_owner_key=CONSUMER_TOKEN, resource_owner_secret=SECRET, signature_method=SIGNATURE_PLAINTEXT)
 
-mac_address = "A2:F2:24:9A:6C:0F"
+mac_address = "f6:59:f9:7f:af:48"
 response = maas.get(f"{MAAS_HOST}/api/2.0/devices/", params={"mac_address": mac_address})
 response.raise_for_status()
 
