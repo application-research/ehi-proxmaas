@@ -3,3 +3,5 @@
 # Or the MAAS ones!
 vars/secret.yml
 vars/secrets.yml
+# Pycache
+**/__pycache__
