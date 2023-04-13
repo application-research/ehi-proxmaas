@@ -124,10 +124,10 @@
       loop: "{{ range(starting_number_target | int, vm_count | int + starting_number_target | int) | list }}"
       register: vm_result
 
-    - name: DEBUG - Print vm_result
-      ansible.builtin.debug:
-        msg: "{{ vm_result }}"
-      when: vm_result is defined
+    # - name: DEBUG - Print vm_result
+    #   ansible.builtin.debug:
+    #     msg: "{{ vm_result }}"
+    #   when: vm_result is defined
 
     - name: Skip all remaining tasks in playbook if no VMs were created # noqa no-handler
       ansible.builtin.meta: end_play
@@ -164,7 +164,7 @@
 
     - name: Existing machine - Extract vmid and name for each item in vm_result.results, and use a placeholder MAC
       ansible.builtin.set_fact:
-        vm_details: "{{ vm_details | combine({item.vmid: {'name': item.invocation.module_args.name, 'mac': 'C0:FF:EE:CA:FE:42'}}) }}"
+        vm_details: "{{ vm_details | combine({item.vmid: {'name': item.invocation.module_args.name, 'mac': {'net0': 'C0:FF:EE:CA:FE:42'}}}) }}"
       loop: "{{ vm_result.results }}"
       loop_control:
         label: "Extracting vmid, mac, and name from vm_result for VMID {{ item.vmid }}"

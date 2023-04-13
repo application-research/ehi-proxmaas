@@ -45,6 +45,11 @@ vm_details = json.loads(args.vm_details)
 for vm_key in vm_details:
     vm = vm_details[vm_key]
     target_mac_address = vm["mac"]["net0"].lower()
+    if target_mac_address == "C0:FF:EE:CA:FE:42":
+        # This is a machine that was already deployed and may already be known to MAAS.
+        # Don't do anything with it.
+        break
+
     machine = client.machines.get(system_id=machine_mac_addresses[target_mac_address]["system_id"])
     machine.hostname = vm["name"]
     # machine.power_type="proxmox"
