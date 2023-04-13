@@ -48,18 +48,18 @@
     - name: Calculate the number of VMs to create if we have a list of IPs
       ansible.builtin.set_fact:
         vm_count: "{{ list_of_ips | length }}"
-      when: list_of_ips is defined
+      when: list_of_ips|length > 0
 
     - name: Dynamically calculate the number of VMs to create when we have a list of IPs
       ansible.builtin.set_fact:
         vm_count: "{{ list_of_ips | length }}"
-      when: list_of_ips is defined
+      when: list_of_ips|length > 0
 
     - name: Set the number of VMs to create
       ansible.builtin.pause:
         prompt: "Enter the number of VMs you want to create"
       register: temp_vm_count
-      when: vm_count is not defined and list_of_ips is not defined
+      when: vm_count is not defined and list_of_ips|length == 0
 
     - name: Set starting_number based on given user input
       ansible.builtin.set_fact:
