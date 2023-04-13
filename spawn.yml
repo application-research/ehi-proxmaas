@@ -3,6 +3,7 @@
   hosts: proxmox_clients
 
   vars_files:
+    - "vars/production-ehi/{{ machine_details | default('dev-demo') }}.yml"
     - "vars/secrets.yml"
 
   tasks:

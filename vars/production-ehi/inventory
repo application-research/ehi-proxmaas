@@ -1,0 +1,5 @@
+[proxmox_clients]
+localhost
+
+[dev-demo]
+localhost]
