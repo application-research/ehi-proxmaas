@@ -16,7 +16,7 @@
 
     - name: DEBUG - Print the value of list_of_ips
       ansible.builtin.debug:
-        msg: "machine_details is {{ machine_details }}"
+        msg: "machine_details is {{ list_of_ips }}"
 
     - name: Ask the user what they want to name their VMs
       ansible.builtin.set_fact:
