@@ -16,8 +16,6 @@
         that:
           # Do not continue if we have both list_of_ips and ip_range defined at the same time
           - not (list_of_ips is defined and ip_range is defined)
-          # Make sure relevant options are set as strings to avoid "1" being interpreted as "true"
-          - not (starting_number is defined and starting_number is not string) and amount_of_memory is string and number_of_vcpus is string
 
     - name: Set the starting number for the VMs
       ansible.builtin.pause:
@@ -75,8 +73,8 @@
         api_host: proxmox.estuary.tech
         timeout: 60
         name: "{{ vm_name }}{{ '%02d' | format(item) }}"
-        memory: "{{ amount_of_memory }}"
-        cores: "{{ number_of_vcpus }}"
+        memory: "{{ amount_of_memory | int }}"
+        cores: "{{ number_of_vcpus | int }}"
         agent: true
         description: "A test VM spawned by EHI Cloudy Dreams."
         onboot: false
