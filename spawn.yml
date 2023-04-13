@@ -129,7 +129,7 @@
         msg: "{{ vm_result }}"
       when: vm_result is defined
 
-    - name: Skip all remaining tasks in playbook if no VMs were created
+    - name: Skip all remaining tasks in playbook if no VMs were created # noqa no-handler
       ansible.builtin.meta: end_play
       when: vm_result.changed is false
 
