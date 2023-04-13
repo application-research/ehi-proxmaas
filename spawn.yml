@@ -172,5 +172,5 @@
 
     - name: Run custom MAAS poker to deploy the nodes
       ansible.builtin.script: >
-        "{{ playbook_dir }}/scripts/maas_deploy_decoy.py"
+        "{{ playbook_dir }}/scripts/maas_deploy.py"
         --vm_details '{{ vm_details | to_json }}'
