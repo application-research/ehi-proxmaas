@@ -43,7 +43,7 @@
       ansible.builtin.set_fact:
         list_of_ips: "{{ list_of_ips | default([]) + (item.start | ip_list_from_range(item.end)) }}"
       loop: "{{ ip_range }}"
-      when: list_of_ips is not defined
+      when: list_of_ips|length == 0
 
     - name: Calculate the number of VMs to create if we have a list of IPs
       ansible.builtin.set_fact:
