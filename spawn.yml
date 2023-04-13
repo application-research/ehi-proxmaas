@@ -154,12 +154,21 @@
       ansible.builtin.set_fact:
         vm_details: {}
 
-    - name: Extract vmid, mac, and name for each item in vm_result.results
+    - name: New machine - Extract vmid, mac, and name for each item in vm_result.results
       ansible.builtin.set_fact:
         vm_details: "{{ vm_details | combine({item.vmid: {'name': item.invocation.module_args.name, 'mac': item.mac}}) }}"
       loop: "{{ vm_result.results }}"
       loop_control:
         label: "Extracting vmid, mac, and name from vm_result for VMID {{ item.vmid }}"
+      when: item.mac is defined
+
+    - name: Existing machine - Extract vmid and name for each item in vm_result.results, and use a placeholder MAC
+      ansible.builtin.set_fact:
+        vm_details: "{{ vm_details | combine({item.vmid: {'name': item.invocation.module_args.name, 'mac': 'C0:FF:EE:CA:FE:42'}}) }}"
+      loop: "{{ vm_result.results }}"
+      loop_control:
+        label: "Extracting vmid, mac, and name from vm_result for VMID {{ item.vmid }}"
+      when: item.mac is not defined
 
     # - name: Update vm_details with IP address if list_of_ips is defined
     #   ansible.builtin.set_fact:
