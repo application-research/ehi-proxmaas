@@ -46,8 +46,11 @@ for vm_key in vm_details:
             if s.cidr == "10.24.0.0/16":
                 subnet = s
                 break
-        # Update the IP address
-        interface.links.create(ip_address=vm["ipv4"], mode=LinkMode.STATIC, subnet=subnet, default_gateway=True, force=True)
+        # Set interface to be the machine interface
+        # TODO(bug): Make this work with more than one interface defined, add flexibility etc
+        for interface in machine.interfaces:
+            # Update the IP address
+            interface.links.create(ip_address=vm["ipv4"], mode=LinkMode.STATIC, subnet=subnet, default_gateway=True, force=True)
     # Check the power on the machine to update its BMC status
     machine.query_power_state()
     # Deploy the machine
