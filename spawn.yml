@@ -87,7 +87,7 @@
     - name: Create a list of VM names
       ansible.builtin.set_fact:
         vm_names: "{{ vm_names | default([]) + [vm_name ~ '%02d' | format(item)] }}"
-      loop: "{{ range(starting_number | int, vm_count | int + starting_number | int) | list }}"
+      loop: "{{ range(starting_number_target | int, vm_count | int + starting_number_target | int) | list }}"
 
     - name: Display the list of VM names
       ansible.builtin.debug:
@@ -121,7 +121,7 @@
           format: raw
           efitype: 4m
           pre_enrolled_keys: false
-      loop: "{{ range(starting_number | int, vm_count | int + starting_number | int) | list }}"
+      loop: "{{ range(starting_number_target | int, vm_count | int + starting_number_target | int) | list }}"
       register: vm_result
 
     - name: DEBUG - Print vm_result

@@ -6,11 +6,21 @@
     - "vars/secrets.yml"
 
   tasks:
+    - name: Clear the value of temporary values in case we're running multiple times
+      ansible.builtin.set_fact:
+        list_of_target_ips: []
+        starting_number_target: []
+        vm_names: []
+
     - name: Set the VM name for the VMs
       ansible.builtin.pause:
         prompt: "Enter the VM name for the VMs you want to destroy. PERMANENTLY!"
       register: temp_vm_name
       when: vm_name is not defined
+
+    - name: Print temp_vm_name
+      ansible.builtin.debug:
+        msg: "temp_vm_name: {{ temp_vm_name }}"
 
     - name: Set vm_name based on given user input
       ansible.builtin.set_fact:
@@ -25,24 +35,35 @@
 
     - name: Set starting_number based on given user input
       ansible.builtin.set_fact:
-        starting_number: "{{ temp_starting_number.input }}"
-      when: temp_starting_number is defined and temp_starting_number.input is defined
+        starting_number_target: "{{ temp_starting_number.user_input }}"
+      when: temp_starting_number is defined and temp_starting_number.user_input is defined
 
     - name: Dynamically build list_of_ips if we have a range of IPs
       ansible.builtin.set_fact:
         list_of_ips: "{{ list_of_ips | default([]) + (item.start | ip_list_from_range(item.end)) }}"
       loop: "{{ ip_range }}"
-      when: list_of_ips is not defined
+      when: list_of_ips is not defined and ip_range is defined
 
     - name: Calculate the number of VMs to DESTROY if we have a list of IPs
       ansible.builtin.set_fact:
         vm_count: "{{ list_of_ips | length }}"
       when: list_of_ips is defined
 
+    - name: Set the starting number for the VMs
+      ansible.builtin.pause:
+        prompt: "Enter the number of VMs you want to DESTROY"
+      register: temp_vm_count
+      when: vm_count is not defined or vm_count.length == 0
+
+    - name: Set starting_number based on given user input
+      ansible.builtin.set_fact:
+        vm_count: "{{ temp_vm_count.user_input }}"
+      when: temp_vm_count is defined and temp_vm_count.user_input is defined
+
     - name: Create a list of VM names
       ansible.builtin.set_fact:
         vm_names: "{{ vm_names | default([]) + [vm_name ~ '%02d' | format(item)] }}"
-      loop: "{{ range(starting_number | int, vm_count | int + starting_number | int) | list }}"
+      loop: "{{ range(starting_number_target | int, vm_count | int + starting_number_target | int) | list }}"
 
     - name: Display the list of VM names
       ansible.builtin.debug:
