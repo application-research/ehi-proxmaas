@@ -7,10 +7,14 @@
     - "vars/secrets.yml"
 
   vars:
-    list_of_files: []
+    list_of_ips: ""
 
   tasks:
     - name: DEBUG - Print the value of machine_details
+      ansible.builtin.debug:
+        msg: "machine_details is {{ machine_details }}"
+
+    - name: DEBUG - Print the value of list_of_ips
       ansible.builtin.debug:
         msg: "machine_details is {{ machine_details }}"
 
