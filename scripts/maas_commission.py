@@ -56,17 +56,6 @@ for vm_key in vm_details:
     "power_vm_name": vm_key,
     "power_verify_ssl": "n"
     })
-    # if "ipv4" in vm:
-    #     # machine.ip_addresses = [ vm["ipv4"]["net0"] ]
-    #     # Read the list of subnets
-    #     subnets = client.subnets.list()
-    #     subnet = None
-    #     for s in subnets:
-    #         if s.cidr == "10.24.0.0/16":
-    #             subnet = s
-    #             break
-    #     # Update the IP address
-    #     interface.links.create(ip_address=vm["ipv4"], mode=LinkMode.STATIC, subnet=subnet, default_gateway=True, force=True)
     machine.save()
     # Check the power on the machine to update its BMC status
     machine.query_power_state()
