@@ -17,9 +17,9 @@ parser.add_argument('--vm_details', type=str, required=True, help='VM details fr
 args = parser.parse_args()
 
 # DEBUG: Write a copy of the VM details to a file
-with open("/root/vm_details.json", "w") as f:
-    f.write(args.vm_details)
-    f.close
+# with open("/root/vm_details.json", "w") as f:
+#     f.write(args.vm_details)
+#     f.close
 
 # Set up the config parser
 config = configparser.ConfigParser()
