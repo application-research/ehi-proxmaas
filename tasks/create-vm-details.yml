@@ -1,0 +1,10 @@
+---
+- name: New machine - Extract vmid and name for each item in vm_result.results
+  ansible.builtin.set_fact:
+    vm_details: "{{ vm_details | combine({item.vmid: {'name': item.invocation.module_args.name, 'mac': item.mac}}) }}"
+  when: item.mac is defined
+
+- name: Existing machine - Extract vmid and name for each item in vm_result.results, and use a placeholder MAC
+  ansible.builtin.set_fact:
+    vm_details: "{{ vm_details | combine({item.vmid: {'name': item.invocation.module_args.name, 'mac': {'net0': 'C0:FF:EE:CA:FE:42'}}}) }}"
+  when: item.mac is not defined
