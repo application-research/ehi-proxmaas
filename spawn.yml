@@ -6,6 +6,9 @@
     - "vars/production-ehi/{{ machine_details | default('dev-demo') }}.yml"
     - "vars/secrets.yml"
 
+  vars:
+    list_of_files: []
+
   tasks:
     - name: DEBUG - Print the value of machine_details
       ansible.builtin.debug:
@@ -19,8 +22,7 @@
     - name: Check if the user has defined an invalid configuration
       ansible.builtin.assert:
         that:
-          # Do not continue if we have both list_of_ips and ip_range defined at the same time
-          - not (list_of_ips is defined and ip_range is defined)
+         - not (list_of_ips is defined and ip_range is defined and list_of_ips|length > 0)
 
     - name: Set the starting number for the VMs
       ansible.builtin.pause:
