@@ -2,6 +2,7 @@
 import argparse
 import json
 from maas.client import connect
+from maas.client.enum import InterfaceType, LinkMode
 import configparser
 from os.path import expanduser
 
@@ -57,8 +58,16 @@ for vm_key in vm_details:
     })
     # If vm_details[vm_key] contains an ipv4 address, set it by recreating ens18 (TODO: make this more generic by targeting more than just ens18)
     if "ipv4" in vm:
-        machine.ip_addresses = [ vm["ipv4"]["net0"] ]
-        new_phy = machine.interfaces.create(mac_address="00:11:22:aa:bb:cc")
+        # machine.ip_addresses = [ vm["ipv4"]["net0"] ]
+        # Read the list of subnets
+        subnets = client.subnets.list()
+        subnet = None
+        for s in subnets:
+            if s.cidr == "10.24.0.0/16":
+                subnet = s
+                break
+        # Update the IP address
+        interface.links.create(ip_address=vm["ipv4"], mode=LinkMode.STATIC, subnet=subnet, default_gateway=True, force=True)
     machine.save()
     # Check the power on the machine to update its BMC status
     machine.query_power_state()

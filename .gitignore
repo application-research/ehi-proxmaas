@@ -5,3 +5,5 @@ vars/secret.yml
 vars/secrets.yml
 # Pycache
 **/__pycache__
+# Testing cruft
+test.py
