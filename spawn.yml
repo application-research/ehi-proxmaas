@@ -179,7 +179,7 @@
     - name: Add IP address to vm_details
       ansible.builtin.set_fact:
         vm_details: "{{ vm_details | combine({item.0.key: item.0.value | combine({'ipv4': item.1})}, recursive=True) }}"
-      loop: "{{ (vm_details | dict2items | list) | zip(list_of_ips) }}"
+      loop: "{{ (vm_details | dict2items | list) | zip(list_of_target_ips) }}"
       loop_control:
         label: "{{ item.0.key }}"
 
