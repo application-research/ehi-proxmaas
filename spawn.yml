@@ -19,14 +19,18 @@
       ansible.builtin.debug:
         msg: "machine_details is {{ list_of_target_ips|default([]) }}"
 
-    - name: Clear the value of list_of_target_ips in case we're running multiple times
+    - name: Clear the value of temporary values in case we're running multiple times
       ansible.builtin.set_fact:
         list_of_target_ips: []
+        vm_names: []
+        vm_count: 0
+        starting_number: 0
+
 
     - name: Ask the user what they want to name their VMs
       ansible.builtin.set_fact:
         vm_name: "{{ vm_name }}"
-      when: vm_name is not defined
+      when: vm_name is not defined or vm_name|length == 0
 
     - name: Check if the user has defined an invalid configuration
       ansible.builtin.assert:
@@ -70,7 +74,7 @@
       ansible.builtin.pause:
         prompt: "Enter the number of VMs you want to create"
       register: temp_vm_count
-      when: vm_count is not defined and list_of_ips|length == 0
+      when: (vm_count is not defined or vm_count|length == 0) and list_of_ips|length == 0
 
     - name: Set starting_number based on given user input
       ansible.builtin.set_fact:
