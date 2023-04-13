@@ -100,6 +100,10 @@
       loop: "{{ range(starting_number | int, vm_count | int + starting_number | int) | list }}"
       register: vm_result
 
+    - name: Skip all remaining tasks in playbook if no VMs were created
+      ansible.builtin.meta: end_play
+      when: vm_result is not defined
+
     - name: Sleep for 10 seconds to let VMs spawn in
       ansible.builtin.pause:
         seconds: 10
