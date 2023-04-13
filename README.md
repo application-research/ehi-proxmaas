@@ -1,5 +1,5 @@
-# Cloudy Dreams for EHI
-This is an experimental repo intended to enable the spawning of arbitrary machines in EHI using Proxmox and MAAS.
+# ProxMAAS for EHI
+This is an experimental repo intended to enable the spawning of arbitrary machines in EHI using Proxmox and MAAS. Put them together, and you have ProxMAAS.
 
 ## Prerequisites
 * A working EHI environment including Proxmox and MAAS
