@@ -39,7 +39,7 @@ for vm_key in vm_details:
     if target_mac_address == "c0:ff:ee:ca:fe:42":
         # This is a machine that was already deployed and may already be known to MAAS.
         # Don't do anything with it.
-        break
+        continue
     machine = client.machines.get(system_id=machine_mac_addresses[target_mac_address]["system_id"])
     # If we've defined IP addresses, force a static assignment
     if "ipv4" in vm:
