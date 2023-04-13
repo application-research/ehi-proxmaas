@@ -22,10 +22,8 @@
     - name: Clear the value of temporary values in case we're running multiple times
       ansible.builtin.set_fact:
         list_of_target_ips: []
+        starting_number_target: []
         vm_names: []
-        vm_count: 0
-        starting_number: 0
-
 
     - name: Ask the user what they want to name their VMs
       ansible.builtin.set_fact:
@@ -37,15 +35,20 @@
         that:
           - not (list_of_ips is defined and ip_range is defined and list_of_ips|length > 0)
 
+    - name: Set the starting number for the VMs if already defined
+      ansible.builtin.set_fact:
+        starting_number_target: "{{ starting_number }}"
+      when: starting_number is defined
+
     - name: Set the starting number for the VMs
       ansible.builtin.pause:
         prompt: "Enter the starting number for the VMs (e.g. 01 if it's a new deployment, 04 if there are already 3 machines, etc.)"
       register: temp_starting_number
-      when: starting_number is not defined
+      when: starting_number_target is not defined
 
     - name: Set starting_number based on given user input
       ansible.builtin.set_fact:
-        starting_number: "{{ temp_starting_number.input }}"
+        starting_number_target: "{{ temp_starting_number.input }}"
       when: temp_starting_number is defined and temp_starting_number.input is defined
 
     - name: Dynamically build list_of_target_ips if we have a range of IPs
