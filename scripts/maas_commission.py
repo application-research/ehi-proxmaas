@@ -60,4 +60,4 @@ for vm_key in vm_details:
     # Check the power on the machine to update its BMC status
     machine.query_power_state()
     # Commission the machine
-    machine.commission(commissioning_scripts=[])
+    machine.commission(testing_scripts=["none"])
