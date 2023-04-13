@@ -2,6 +2,7 @@
 import argparse
 import json
 from maas.client import connect
+from maas.client.enum import LinkMode
 import configparser
 from os.path import expanduser
 
@@ -36,6 +37,17 @@ for vm_key in vm_details:
     vm = vm_details[vm_key]
     target_mac_address = vm["mac"]["net0"].lower()
     machine = client.machines.get(system_id=machine_mac_addresses[target_mac_address]["system_id"])
+    # If we've defined IP addresses, force a static assignment
+    if "ipv4" in vm:
+        # Read the list of subnets
+        subnets = client.subnets.list()
+        subnet = None
+        for s in subnets:
+            if s.cidr == "10.24.0.0/16":
+                subnet = s
+                break
+        # Update the IP address
+        interface.links.create(ip_address=vm["ipv4"], mode=LinkMode.STATIC, subnet=subnet, default_gateway=True, force=True)
     # Check the power on the machine to update its BMC status
     machine.query_power_state()
     # Deploy the machine
