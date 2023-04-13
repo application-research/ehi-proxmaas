@@ -7,7 +7,7 @@
     - "vars/secrets.yml"
 
   vars:
-    list_of_ips: ""
+    list_of_ips: []
 
   tasks:
     - name: DEBUG - Print the value of machine_details
