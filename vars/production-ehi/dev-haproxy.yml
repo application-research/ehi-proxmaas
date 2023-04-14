@@ -9,3 +9,4 @@ ip_range:
     end: 10.24.1.23
 starting_number: 1
 vm_name: dev-haproxy
+vm_description: "Development HAProxy node"

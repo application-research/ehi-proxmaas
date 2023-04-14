@@ -9,3 +9,4 @@ ip_range:
     end: 10.24.0.23
 starting_number: 1
 vm_name: prod-haproxy
+vm_description: "Production HAProxy node"

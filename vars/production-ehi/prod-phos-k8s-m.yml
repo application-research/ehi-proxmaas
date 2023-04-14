@@ -9,4 +9,4 @@ ip_range:
     end: 10.24.0.107
 starting_number: 1
 vm_name: prod-phos-k8s-m
-
+vm_description: "Production Phosphophyllite Kubernetes Control Plane node"

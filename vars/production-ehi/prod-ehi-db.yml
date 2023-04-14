@@ -10,3 +10,4 @@ ip_range:
     end: 10.24.3.22
 starting_number: 1
 vm_name: prod-ehi-db
+vm_description: "Production EHI Database node"

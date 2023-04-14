@@ -11,3 +11,4 @@ ip_range:
     end: 10.24.0.13
 starting_number: 1
 vm_name: prod-ebi-k8s-m
+vm_description: "Production EBI Kubernetes Control Plane node"

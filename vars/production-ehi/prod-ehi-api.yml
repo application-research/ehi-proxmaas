@@ -9,3 +9,4 @@ ip_range:
     end: 10.24.0.32
 starting_number: 1
 vm_name: prod-ehi-api
+vm_description: "Production EHI API node"
