@@ -195,6 +195,10 @@
       ansible.builtin.pause:
         seconds: 180
 
+    - name: DEBUG - Display maas_api_key
+      ansible.builtin.debug:
+        var: maas_api_key
+
     - name: Run custom MAAS poker to inject Proxmox BMC credentials and correct node name and commission the nodes
       delegate_to: localhost
       ansible.builtin.script: >
