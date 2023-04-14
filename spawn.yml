@@ -1,6 +1,7 @@
 ---
 - name: Proxmox spawn test
   hosts: proxmox_clients
+  connection: local
 
   vars_files:
     - "vars/production-ehi/{{ machine_details | default('dev-demo') }}.yml"
