@@ -4,20 +4,20 @@
 
   vars_files:
     - "vars/production-ehi/{{ machine_details | default('dev-demo') }}.yml"
-    - "vars/secrets.yml"
 
   tasks:
-    - name: DEBUG - Print the value of machine_details
-      ansible.builtin.debug:
-        msg: "machine_details is {{ machine_details|default([]) }}"
+    - name: Check if repo-specific secrets file exists
+      delegate_to: localhost
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/vars/secrets.yml"
+      register: vault_password_file
 
-    - name: DEBUG - Print the value of list_of_ips
-      ansible.builtin.debug:
-        msg: "machine_details is {{ list_of_ips|default([]) }}"
-
-    - name: DEBUG - Print the value of list_of_target_ips
-      ansible.builtin.debug:
-        msg: "machine_details is {{ list_of_target_ips|default([]) }}"
+    - name: If repo-specific secrets file exists, load it in
+      delegate_to: localhost
+      ansible.builtin.include_vars:
+        file: "vars/secrets.yml"
+        name: secrets
+      when: vault_password_file.stat.exists
 
     - name: Clear the value of temporary values in case we're running multiple times
       ansible.builtin.set_fact:
