@@ -203,7 +203,7 @@
         --proxmox_token_secret "{{ proxmox_token_secret }}"
         --proxmox_user "{{ proxmox_user }}"
         --maas_url "{{ maas_url }}"
-        --maas_api_key "{{ maas_api_key }}"
+        --maas_api_key "{{ maas_api_key | string }}"
         --vm_details '{{ vm_details | to_json }}'
 
     - name: Wait for 180 seconds before proceeding
@@ -221,5 +221,5 @@
       ansible.builtin.script: >
         "{{ playbook_dir }}/scripts/maas_deploy.py"
         --maas_url "{{ maas_url }}"
-        --maas_api_key "{{ maas_api_key }}"
+        --maas_api_key "{{ maas_api_key | string }}"
         --vm_details '{{ vm_details | to_json }}'
