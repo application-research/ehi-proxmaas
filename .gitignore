@@ -7,3 +7,4 @@ vars/secrets.yml
 **/__pycache__
 # Testing cruft
 test.py
+vm_details.json
