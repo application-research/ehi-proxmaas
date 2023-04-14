@@ -1,7 +1,6 @@
 ---
 - name: Proxmox spawn test
   hosts: proxmox_clients
-  connection: local
 
   vars_files:
     - "vars/production-ehi/{{ machine_details | default('dev-demo') }}.yml"
@@ -95,6 +94,7 @@
         msg: "We will be creating the following VMs: {{ vm_names }}"
 
     - name: Create the requested VMs
+      delegate_to: localhost
       community.general.proxmox_kvm:
         api_user: "{{ proxmox_user }}"
         api_token_id: "{{ proxmox_token_id }}"
@@ -139,6 +139,7 @@
         seconds: 10
 
     - name: Start the requested VMs # noqa no-handler
+      delegate_to: localhost
       community.general.proxmox_kvm:
         api_user: "{{ proxmox_user }}"
         api_token_id: "{{ proxmox_token_id }}"
@@ -199,6 +200,7 @@
         seconds: 180
 
     - name: Run custom MAAS poker to inject Proxmox BMC credentials and correct node name and commission the nodes
+      delegate_to: localhost
       ansible.builtin.script: >
         "{{ playbook_dir }}/scripts/maas_commission.py"
         --proxmox_token_id "{{ proxmox_token_id }}"
@@ -217,6 +219,7 @@
       when: (wait_for_user | default(false))
 
     - name: Run custom MAAS poker to deploy the nodes
+      delegate_to: localhost
       ansible.builtin.script: >
         "{{ playbook_dir }}/scripts/maas_deploy.py"
         --vm_details '{{ vm_details | to_json }}'
