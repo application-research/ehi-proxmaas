@@ -3,7 +3,6 @@ import argparse
 import json
 from maas.client import connect
 from maas.client.enum import InterfaceType, LinkMode
-import configparser
 from os.path import expanduser
 
 # Set up the argument parser
@@ -12,7 +11,8 @@ parser.add_argument('--proxmox_token_id', type=str, required=True, help='Proxmox
 parser.add_argument('--proxmox_token_secret', type=str, required=True, help='Proxmox token secret')
 parser.add_argument('--proxmox_user', type=str, required=True, help='Proxmox user including realm (eg root@pam)')
 parser.add_argument('--vm_details', type=str, required=True, help='VM details from Ansible')
-
+parser.add_argument('--maas_url', type=str, required=True, help='URL of MAAS API')
+parser.add_argument('--maas_api_key', type=str, required=True, help='MAAS API key')
 # Parse the command-line arguments
 args = parser.parse_args()
 
@@ -21,13 +21,8 @@ args = parser.parse_args()
 #     f.write(args.vm_details)
 #     f.close
 
-# Set up the config parser
-config = configparser.ConfigParser()
-config.read(expanduser("~/.proxmox-maas.cfg"))
-
 # Connect to MAAS
-client = connect("https://maas.estuary.tech/MAAS", apikey=config["maas_api"]["api_key"])
-tmpl = "{0.hostname} {1.name} {1.mac_address}"
+client = connect(args.maas_url, apikey=args.maas_api_key)
 
 # Get a list of all machines and their MAC addresses
 machine_mac_addresses = {}
