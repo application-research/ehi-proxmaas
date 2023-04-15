@@ -1,0 +1,13 @@
+---
+# Machine specs
+scsi_disk_layout:
+  scsi0: "vm-storage:50,format=raw"
+  scsi1: "vm-storage:100,format=raw"
+amount_of_memory: 16384
+number_of_vcpus: 8
+ip_range:
+  - start: 10.24.3.1
+    end: 10.24.3.3
+starting_number: 1
+vm_name: prod-ebi-db
+vm_description: "Production EBI Database node"
