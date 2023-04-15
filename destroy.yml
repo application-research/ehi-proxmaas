@@ -35,8 +35,8 @@
 
     - name: Set vm_name based on given user input
       ansible.builtin.set_fact:
-        vm_name: "{{ temp_vm_name.input }}"
-      when: temp_vm_name is defined and temp_vm_name.input is defined
+        vm_name: "{{ temp_vm_name.user_input }}"
+      when: temp_vm_name is defined and temp_vm_name.user_input is defined
 
     - name: Set the starting number for the VMs
       ansible.builtin.pause:
@@ -99,5 +99,5 @@
         api_host: proxmox.estuary.tech
         name: "{{ vm_name }}{{ '%02d' | format(item) }}"
         state: absent
-      loop: "{{ range((starting_number | int), ((starting_number | int) + (vm_count | int))) | list }}"
+      loop: "{{ range((starting_number_target | int), ((starting_number_target | int) + (vm_count | int))) | list }}"
       register: vm_result
