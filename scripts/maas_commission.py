@@ -16,11 +16,6 @@ parser.add_argument('--maas_api_key', type=str, required=True, help='MAAS API ke
 # Parse the command-line arguments
 args = parser.parse_args()
 
-# DEBUG: Write a copy of the VM details to a file
-# with open("/root/vm_details.json", "w") as f:
-#     f.write(args.vm_details)
-#     f.close
-
 # Connect to MAAS
 client = connect(args.maas_url, apikey=args.maas_api_key)
 

@@ -121,11 +121,6 @@
       loop: "{{ range(starting_number_target | int, vm_count | int + starting_number_target | int) | list }}"
       register: vm_result
 
-    # - name: DEBUG - Print vm_result
-    #   ansible.builtin.debug:
-    #     msg: "{{ vm_result }}"
-    #   when: vm_result is defined
-
     - name: Skip all remaining tasks in playbook if no VMs were created # noqa no-handler
       ansible.builtin.meta: end_play
       when: vm_result.changed is false
@@ -194,10 +189,6 @@
     - name: Wait for 180 seconds before proceeding
       ansible.builtin.pause:
         seconds: 180
-
-    - name: DEBUG - Display maas_api_key
-      ansible.builtin.debug:
-        var: maas_api_key
 
     - name: Run custom MAAS poker to inject Proxmox BMC credentials and correct node name and commission the nodes
       delegate_to: localhost
