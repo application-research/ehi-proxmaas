@@ -17,7 +17,6 @@
       delegate_to: localhost
       ansible.builtin.include_vars:
         file: "vars/secrets.yml"
-        name: secrets
       when: vault_password_file.stat.exists
 
     - name: Clear the value of temporary values in case we're running multiple times
