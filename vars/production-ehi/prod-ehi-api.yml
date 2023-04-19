@@ -1,12 +1,12 @@
 ---
 # Machine specs
 scsi_disk_layout:
-  scsi0: "vm-storage:400,format=raw"
-amount_of_memory: 32768
-number_of_vcpus: 24
+  scsi0: "vm-storage:3000,format=raw"
+amount_of_memory: 131072
+number_of_vcpus: 96
 ip_range:
   - start: 10.24.0.30
-    end: 10.24.0.32
+    end: 10.24.0.30
 starting_number: 1
 vm_name: prod-ehi-api
 vm_description: "Production EHI API node"
