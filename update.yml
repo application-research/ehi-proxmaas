@@ -1,0 +1,125 @@
+---
+- name: Spawn Proxmox virtual machines
+  hosts: proxmox_clients
+  connection: local
+
+  vars_files:
+    - "vars/production-ehi/{{ machine_details | default('dev-demo') }}.yml"
+
+  tasks:
+    - name: Check if repo-specific secrets file exists
+      delegate_to: localhost
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/vars/secrets.yml"
+      register: vault_password_file
+
+    - name: If repo-specific secrets file exists, load it in
+      delegate_to: localhost
+      ansible.builtin.include_vars:
+        file: "vars/secrets.yml"
+      when: vault_password_file.stat.exists
+
+    - name: Clear the value of temporary values in case we're running multiple times
+      ansible.builtin.set_fact:
+        list_of_target_ips: []
+        starting_number_target: []
+        vm_names: []
+
+    - name: Ask the user what they want to name their VMs
+      ansible.builtin.set_fact:
+        vm_name: "{{ vm_name }}"
+      when: vm_name is not defined or vm_name | length == 0
+
+    - name: Check if the user has defined an invalid configuration
+      ansible.builtin.assert:
+        that:
+          - not (list_of_ips is defined and ip_range is defined and list_of_ips|length > 0)
+
+    - name: Set the starting number for the VMs if already defined
+      ansible.builtin.set_fact:
+        starting_number_target: "{{ starting_number }}"
+      when: starting_number is defined
+
+    - name: Set the starting number for the VMs
+      ansible.builtin.pause:
+        prompt: "Enter the starting number for the VMs (e.g. 01 if it's a new deployment, 04 if there are already 3 machines, etc.)"
+      register: temp_starting_number
+      when: starting_number_target is not defined
+
+    - name: Set starting_number based on given user input
+      ansible.builtin.set_fact:
+        starting_number_target: "{{ temp_starting_number.input }}"
+      when: temp_starting_number is defined and temp_starting_number.input is defined
+
+    - name: Dynamically build list_of_target_ips if we have a range of IPs
+      ansible.builtin.set_fact:
+        list_of_target_ips: "{{ list_of_target_ips | default([]) + (item.start | ip_list_from_range(item.end)) }}"
+      loop: "{{ ip_range }}"
+      when: list_of_ips is not defined or list_of_ips | length == 0
+
+    - name: Statically build list_of_target_ips if we have a list of IPs
+      ansible.builtin.set_fact:
+        list_of_target_ips: "{{ list_of_target_ips | default([]) + (item.start | ip_list_from_range(item.end)) }}"
+      loop: "{{ ip_range }}"
+      when: list_of_ips is defined and list_of_ips | length > 0
+
+    - name: Calculate the number of VMs to create if we have a list of IPs
+      ansible.builtin.set_fact:
+        vm_count: "{{ list_of_target_ips | length }}"
+      when: list_of_target_ips | length > 0
+
+    - name: Set the number of VMs to create
+      ansible.builtin.pause:
+        prompt: "Enter the number of VMs you want to create"
+      register: temp_vm_count
+      when: (vm_count is not defined or vm_count | length == 0) and list_of_ips | length == 0
+
+    - name: Set starting_number based on given user input
+      ansible.builtin.set_fact:
+        starting_number: "{{ temp_vm_count.input }}"
+      when: temp_vm_count is defined and temp_vm_count.input is defined
+
+    - name: Create a list of VM names
+      ansible.builtin.set_fact:
+        vm_names: "{{ vm_names | default([]) + [vm_name ~ '%02d' | format(item)] }}"
+      loop: "{{ range(starting_number_target | int, vm_count | int + starting_number_target | int) | list }}"
+
+    - name: Display the list of VM names
+      ansible.builtin.debug:
+        msg: "We will be updating the following VMs: {{ vm_names }}"
+
+    - name: Update the requested VMs
+      delegate_to: localhost
+      community.general.proxmox_kvm:
+        # Update in place
+        update: true
+        # API credentials
+        api_user: "{{ proxmox_user }}"
+        api_token_id: "{{ proxmox_token_id }}"
+        api_token_secret: "{{ proxmox_token_secret }}"
+        # api_password: "{{ proxmox_password }}"
+        api_host: proxmox.estuary.tech
+        timeout: 60
+        name: "{{ vm_name }}{{ '%02d' | format(item) }}"
+        memory: "{{ amount_of_memory | int }}"
+        cores: "{{ number_of_vcpus | int }}"
+        agent: true
+        description: "{{ vm_description | default('A VM spawned by ProxMAAS and Ansible') }}"
+        onboot: false
+        # Set machines to boot from network first, then hard disk
+        boot: nc
+        bootdisk: scsi0
+        cpu: host
+        node: "{{ proxmox_nodes[item % 8] }}"
+        scsihw: "virtio-scsi-single"
+        scsi: "{{ scsi_disk_layout }}"
+        net:
+          net0: 'bridge=vmbr0,virtio,mtu=1,firewall=1'
+        bios: ovmf
+        efidisk0:
+          storage: vm-storage
+          format: raw
+          efitype: 4m
+          pre_enrolled_keys: false
+      loop: "{{ range(starting_number_target | int, vm_count | int + starting_number_target | int) | list }}"
+      register: vm_result
