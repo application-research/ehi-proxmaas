@@ -120,6 +120,78 @@
       loop: "{{ range(starting_number_target | int, vm_count | int + starting_number_target | int) | list }}"
       register: vm_result
 
+    - name: Print vm_result
+      ansible.builtin.debug:
+        msg: "{{ vm_result }}"
+
+    - name: Create an empty dictionary for MAC addresses
+      ansible.builtin.set_fact:
+        vm_details: {}
+
+    - name: Extract vmid, mac, and name for each item in vm_result.results
+      ansible.builtin.include_tasks: tasks/create_vm_details.yml
+      loop: "{{ vm_result.results }}"
+      loop_control:
+        label: "Extracting vmid, mac, and name from vm_result for VMID {{ item.vmid }}"
+
+    - name: Print list of target IPs
+      ansible.builtin.debug:
+        var: list_of_target_ips
+
+    - name: Add IP address to vm_details
+      ansible.builtin.set_fact:
+        vm_details: "{{ vm_details | combine({item.0.key: item.0.value | combine({'ipv4': item.1})}, recursive=True) }}"
+      loop: "{{ (vm_details | dict2items | list) | zip(list_of_target_ips) }}"
+      loop_control:
+        label: "{{ item.0.key }}"
+
+    - name: Add dns_record_type to vm_details
+      ansible.builtin.set_fact:
+        vm_details: "{{ vm_details | combine({item.key: item.value | combine({'dns_record_type': dns_record_type})}, recursive=True) }}"
+      loop: "{{ vm_details | dict2items }}"
+
+    - name: Add dns_fqdn to vm_details
+      ansible.builtin.set_fact:
+        vm_details: "{{ vm_details | combine({item.key: item.value | combine({'dns_fqdn': item.value.name ~ '.' ~ dns_domain})}, recursive=True) }}"
+      loop: "{{ vm_details | dict2items }}"
+
+    - name: DEBUG - Print vm_details
+      ansible.builtin.debug:
+        msg: "{{ vm_details }}"
+
+    - name: Set facts for DNS record types
+      ansible.builtin.set_fact:
+        a_record_string: "A"
+        cname_record_string: "CNAME"
+
+    - name: Add any A DNS records with Technitium for each VM
+      delegate_to: localhost
+      ansible.builtin.script: >
+        {{ playbook_dir }}/scripts/technitium_upsert.py
+        --dns_fqdn '{{ item.value.dns_fqdn }}'
+        --dns_record_type '{{ item.value.dns_record_type }}'
+        --dns_record_value '{{ item.value.ipv4 }}'
+        --technitium_url '{{ technitium_url }}'
+        --technitium_api_key '{{ technitium_api_key }}'
+      when: item.value.dns_record_type == a_record_string
+      loop: "{{ vm_details | dict2items }}"
+      loop_control:
+        label: "Creating DNS record for {{ item.value.name }}"
+
+    - name: Add any CNAME DNS records with Technitium for each VM
+      delegate_to: localhost
+      ansible.builtin.script: >
+        {{ playbook_dir }}/scripts/technitium_upsert.py
+        --dns_fqdn '{{ item.value.dns_fqdn }}'
+        --dns_record_type '{{ item.value.dns_record_type }}'
+        --dns_record_value '{{ dns_record_value }}'
+        --technitium_url '{{ technitium_url }}'
+        --technitium_api_key '{{ technitium_api_key }}'
+      when: ( item.value.dns_record_type == cname_record_string ) and ( dns_record_value is defined )
+      loop: "{{ vm_details | dict2items }}"
+      loop_control:
+        label: "Creating DNS record for {{ item.value.name }}"
+
     - name: Skip all remaining tasks in playbook if no VMs were created # noqa no-handler
       ansible.builtin.meta: end_play
       when: vm_result.changed is false
@@ -141,49 +213,6 @@
         state: started
       loop: "{{ vm_result.results }}"
       when: item is changed
-
-    - name: Create an empty dictionary for MAC addresses
-      ansible.builtin.set_fact:
-        vm_details: {}
-
-    - name: Extract vmid, mac, and name for each item in vm_result.results
-      ansible.builtin.include_tasks: tasks/create_vm_details.yml
-      loop: "{{ vm_result.results }}"
-      loop_control:
-        label: "Extracting vmid, mac, and name from vm_result for VMID {{ item.vmid }}"
-
-    # - name: Update vm_details with IP address if list_of_ips is defined
-    #   ansible.builtin.set_fact:
-    #     vm_details: "{{ vm_details | combine({item.vmid: {'name': item.name, 'mac': item.mac, 'ip': list_of_ips[loop.index0]}}) }}"
-    #   loop: "{{ vm_result.results }}"
-    #   when: list_of_ips is defined
-
-    - name: Print list of target IPs
-      ansible.builtin.debug:
-        var: list_of_target_ips
-
-    - name: Print vm_details
-      ansible.builtin.debug:
-        var: vm_details
-
-    - name: Add IP address to vm_details
-      ansible.builtin.set_fact:
-        vm_details: "{{ vm_details | combine({item.0.key: item.0.value | combine({'ipv4': item.1})}, recursive=True) }}"
-      loop: "{{ (vm_details | dict2items | list) | zip(list_of_target_ips) }}"
-      loop_control:
-        label: "{{ item.0.key }}"
-
-    - name: Display combined vm_details
-      ansible.builtin.debug:
-        var: vm_details
-
-    - name: Print entire list of vm_details
-      ansible.builtin.debug:
-        var: vm_details
-
-    - name: Display the vm_details dictionary
-      ansible.builtin.debug:
-        var: vm_details
 
     - name: Wait for 180 seconds before proceeding
       ansible.builtin.pause:
