@@ -145,27 +145,19 @@
       loop_control:
         label: "{{ item.0.key }}"
 
-    # - name: DEBUG - Print vm_result
-    #   ansible.builtin.debug:
-    #     msg: "{{ vm_details }}"
-
     - name: Add dns_record_type to vm_details
       ansible.builtin.set_fact:
         vm_details: "{{ vm_details | combine({item.key: item.value | combine({'dns_record_type': dns_record_type})}, recursive=True) }}"
       loop: "{{ vm_details | dict2items }}"
-
-    # - name: DEBUG - Print vm_result
-    #   ansible.builtin.debug:
-    #     msg: "{{ vm_details }}"
 
     - name: Add dns_fqdn to vm_details
       ansible.builtin.set_fact:
         vm_details: "{{ vm_details | combine({item.key: item.value | combine({'dns_fqdn': item.value.name ~ '.' ~ dns_domain})}, recursive=True) }}"
       loop: "{{ vm_details | dict2items }}"
 
-    # - name: DEBUG - Print vm_result
-    #   ansible.builtin.debug:
-    #     msg: "{{ vm_details }}"
+    - name: DEBUG - Print vm_details
+      ansible.builtin.debug:
+        msg: "{{ vm_details }}"
 
     - name: Set facts for DNS record types
       ansible.builtin.set_fact:
