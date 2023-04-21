@@ -51,7 +51,7 @@ existing_records_list = existing_records['response']['records']
 record_exists = any(record["name"] == dns_fqdn for record in existing_records_list)
 
 if record_exists:
-    print(f"{dns_fqdn} exists in the existing records. Moving on...")
+    print(f"{dns_fqdn} exists already in the existing records. Moving on...")
 
 elif ( not record_exists ) and ( dns_record_type == "CNAME" ):
     print(f"{dns_fqdn} does not exist in the existing records. Adding it now...")

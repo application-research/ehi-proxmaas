@@ -4,7 +4,7 @@ scsi_disk_layout:
   scsi0: "vm-storage:15,format=raw"
 amount_of_memory: "2048"
 number_of_vcpus: "1"
-# You can define a list of IPs like thiS:
+# You can define a list of IPs like thiS: (Nope, you can't.  You can only define a range of IPs at the moment!)
 # list_of_ips:
 #   - 10.24.10.101
 #   - 10.24.10.102

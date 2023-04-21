@@ -149,11 +149,13 @@
       ansible.builtin.set_fact:
         vm_details: "{{ vm_details | combine({item.key: item.value | combine({'dns_record_type': dns_record_type})}, recursive=True) }}"
       loop: "{{ vm_details | dict2items }}"
+      when: dns_record_type is defined
 
     - name: Add dns_fqdn to vm_details
       ansible.builtin.set_fact:
         vm_details: "{{ vm_details | combine({item.key: item.value | combine({'dns_fqdn': item.value.name ~ '.' ~ dns_domain})}, recursive=True) }}"
       loop: "{{ vm_details | dict2items }}"
+      when: dns_domain is defined
 
     - name: DEBUG - Print vm_details
       ansible.builtin.debug:
@@ -173,7 +175,7 @@
         --dns_record_value '{{ item.value.ipv4 }}'
         --technitium_url '{{ technitium_url }}'
         --technitium_api_key '{{ technitium_api_key }}'
-      when: item.value.dns_record_type == a_record_string
+      when: ( item.value.dns_record_type is defined ) and ( item.value.dns_record_type == a_record_string )
       loop: "{{ vm_details | dict2items }}"
       loop_control:
         label: "Creating DNS record for {{ item.value.name }}"
@@ -187,7 +189,7 @@
         --dns_record_value '{{ dns_record_value }}'
         --technitium_url '{{ technitium_url }}'
         --technitium_api_key '{{ technitium_api_key }}'
-      when: ( item.value.dns_record_type == cname_record_string ) and ( dns_record_value is defined )
+      when: ( item.value.dns_record_type is defined ) and ( item.value.dns_record_type == cname_record_string ) and ( dns_record_value is defined )
       loop: "{{ vm_details | dict2items }}"
       loop_control:
         label: "Creating DNS record for {{ item.value.name }}"
