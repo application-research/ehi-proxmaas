@@ -1,0 +1,12 @@
+---
+# Machine specs
+scsi_disk_layout:
+  scsi0: "vm-storage:50,format=raw"
+amount_of_memory: "8096"
+number_of_vcpus: "8"
+list_of_ips:
+  - 10.24.10.100
+starting_number: "1"
+vm_name: dev-checkmk
+vm_description: "Development CheckMK server, used for monitoring key services."
+dns_record_type: "A"
