@@ -17,5 +17,5 @@ ip_range:
 starting_number: "1"
 vm_name: dev-demo
 vm_description: "Development Demo node, used for showing off and testing out new things"
-# Testing variables for Technitium DNS
+# Variables for Technitium DNS, no record will be created if 'dns_record_type' is not defined
 dns_record_type: "A"
