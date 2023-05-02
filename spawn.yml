@@ -99,6 +99,7 @@
         timeout: 60
         name: "{{ vm_name }}{{ '%02d' | format(item) }}"
         memory: "{{ amount_of_memory | int }}"
+        balloon: "{{ minimum_memory | default(0) | int }}"
         cores: "{{ number_of_vcpus | int }}"
         agent: true
         description: "{{ vm_description | default('A VM spawned by ProxMAAS and Ansible') }}"
@@ -117,6 +118,7 @@
           format: raw
           efitype: 4m
           pre_enrolled_keys: false
+        update: true
       loop: "{{ range(starting_number_target | int, vm_count | int + starting_number_target | int) | list }}"
       register: vm_result
 
