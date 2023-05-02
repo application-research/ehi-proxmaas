@@ -99,6 +99,7 @@
         timeout: 60
         name: "{{ vm_name }}{{ '%02d' | format(item) }}"
         memory: "{{ amount_of_memory | int }}"
+        balloon: "{{ minimum_memory | int | default(0) }}"
         cores: "{{ number_of_vcpus | int }}"
         agent: true
         description: "{{ vm_description | default('A VM spawned by ProxMAAS and Ansible') }}"
