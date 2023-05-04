@@ -118,7 +118,6 @@
           format: raw
           efitype: 4m
           pre_enrolled_keys: false
-        update: true
       loop: "{{ range(starting_number_target | int, vm_count | int + starting_number_target | int) | list }}"
       register: vm_result
 

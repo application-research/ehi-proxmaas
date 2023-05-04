@@ -7,6 +7,7 @@ This is an experimental repo intended to enable the spawning of arbitrary machin
 * A "client" machine with the following Python3 modules installed
     * `proxmoxer`
     * `requests`
+    * `python-libmaas`
 
 ## Getting started
 1. Clone this repo
