@@ -121,11 +121,12 @@
         automation_user: "automation"
         automation_secret: "{{ checkmk_automation_secret }}"
         folder: "{{ checkmk_agent_folder | default(omit) }}"
-        host_name: "{{ inventory_hostname }}"
+        host_name: "{{ item }}.{{ dns_domain }}"
         #attributes: "{{ checkmk_agent_host_attributes }}"
         state: "present"
-        validate_certs: "{{ checkmk_agent_server_validate_certs | bool }}"
+        validate_certs: "{{ checkmk_agent_server_validate_certs | default(true) | bool }}"
       register: checkmk_agent_create_result
+      with_items: "{{ vm_names }}"
       failed_when: |
         (checkmk_agent_create_result.failed == true) and
         ("The host is already part of the specified target folder" not in checkmk_agent_create_result.msg)
@@ -142,9 +143,10 @@
         site: "{{ checkmk_site_name }}"
         automation_user: "automation"
         automation_secret: "{{ checkmk_automation_secret }}"
-        host_name: "{{ inventory_hostname }}"
+        host_name: "{{ item }}.{{ dns_domain }}"
         state: "fix_all"
-        validate_certs: "{{ checkmk_agent_server_validate_certs | bool }}"
+        validate_certs: "{{ checkmk_agent_server_validate_certs | default(true) | bool }}"
+      with_items: "{{ vm_names }}"
 
     - name: "Activate changes on all sites including foreign changes"
       delegate_to: localhost
@@ -155,5 +157,5 @@
         automation_user: "automation"
         automation_secret: "{{ checkmk_automation_secret }}"
         force_foreign_changes: true
-        validate_certs: "{{ checkmk_agent_server_validate_certs | bool }}"
+        validate_certs: "{{ checkmk_agent_server_validate_certs | default(true) | bool }}"
       run_once: true
