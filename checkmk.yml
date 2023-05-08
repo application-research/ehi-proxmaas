@@ -1,0 +1,159 @@
+---
+- name: Connect CheckMK Clients
+  hosts: proxmox_clients
+  connection: local
+
+  vars_files:
+    - "vars/production-ehi/{{ machine_details | default('dev-demo') }}.yml"
+
+  tasks:
+    - name: Check if repo-specific secrets file exists
+      delegate_to: localhost
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/vars/secrets.yml"
+      register: vault_password_file
+
+    - name: If repo-specific secrets file exists, load it in
+      delegate_to: localhost
+      ansible.builtin.include_vars:
+        file: "vars/secrets.yml"
+      when: vault_password_file.stat.exists
+
+    - name: Clear the value of temporary values in case we're running multiple times
+      ansible.builtin.set_fact:
+        list_of_target_ips: []
+        starting_number_target: []
+        vm_names: []
+
+    - name: Ask the user what they want to name their VMs
+      ansible.builtin.set_fact:
+        vm_name: "{{ vm_name }}"
+      when: vm_name is not defined or vm_name | length == 0
+
+    - name: Check if the user has defined an invalid configuration
+      ansible.builtin.assert:
+        that:
+          - not (list_of_ips is defined and ip_range is defined and list_of_ips|length > 0)
+
+    - name: Set the starting number for the VMs if already defined
+      ansible.builtin.set_fact:
+        starting_number_target: "{{ starting_number }}"
+      when: starting_number is defined
+
+    - name: Set the starting number for the VMs
+      ansible.builtin.pause:
+        prompt: "Enter the starting number for the VMs (e.g. 01 if it's a new deployment, 04 if there are already 3 machines, etc.)"
+      register: temp_starting_number
+      when: starting_number_target is not defined
+
+    - name: Set starting_number based on given user input
+      ansible.builtin.set_fact:
+        starting_number_target: "{{ temp_starting_number.input }}"
+      when: temp_starting_number is defined and temp_starting_number.input is defined
+
+    - name: Dynamically build list_of_target_ips if we have a range of IPs
+      ansible.builtin.set_fact:
+        list_of_target_ips: "{{ list_of_target_ips | default([]) + (item.start | ip_list_from_range(item.end)) }}"
+      loop: "{{ ip_range }}"
+      when: list_of_ips is not defined or list_of_ips | length == 0
+
+    - name: Statically build list_of_target_ips if we have a list of IPs
+      ansible.builtin.set_fact:
+        list_of_target_ips: "{{ list_of_target_ips | default([]) + (item.start | ip_list_from_range(item.end)) }}"
+      loop: "{{ ip_range }}"
+      when: list_of_ips is defined and list_of_ips | length > 0
+
+    - name: Calculate the number of VMs to create if we have a list of IPs
+      ansible.builtin.set_fact:
+        vm_count: "{{ list_of_target_ips | length }}"
+      when: list_of_target_ips | length > 0
+
+    - name: Set the number of VMs to create
+      ansible.builtin.pause:
+        prompt: "Enter the number of VMs you want to create"
+      register: temp_vm_count
+      when: (vm_count is not defined or vm_count | length == 0) and list_of_ips | length == 0
+
+    - name: Set starting_number based on given user input
+      ansible.builtin.set_fact:
+        starting_number: "{{ temp_vm_count.input }}"
+      when: temp_vm_count is defined and temp_vm_count.input is defined
+
+    - name: Create a list of VM names
+      ansible.builtin.set_fact:
+        vm_names: "{{ vm_names | default([]) + [vm_name ~ '%02d' | format(item)] }}"
+      loop: "{{ range(starting_number_target | int, vm_count | int + starting_number_target | int) | list }}"
+
+    - name: Display the list of VM names
+      ansible.builtin.debug:
+        msg: "We will be connecting the following VMs to CheckMK: {{ vm_names }}"
+
+    - name: Collect list of available agents on the Checkmk server
+      delegate_to: "{{ checkmk_server_url }}"
+      ansible.builtin.command: |
+         ls /opt/omd/sites/{{ checkmk_site_name }}/share/check_mk/agents/
+      run_once: true
+      register: agents_result
+
+    - name: Filter the *_all.deb agent
+      ansible.builtin.set_fact:
+        deb_agent: "{{ item }}"
+      loop: "{{ agents_result.stdout_lines }}"
+      when: item.endswith('_all.deb')
+      run_once: true
+
+    - name: Download CheckMK agent onto the server
+      ansible.builtin.get_url:
+        url: "https://{{ checkmk_server_url }}/{{ checkmk_site_name }}/check_mk/agents/{{ deb_agent }}"
+        dest: "/tmp/{{ deb_agent }}"
+        validate_certs: no
+
+    - name: Add Checkmk agent package and prerequisites
+      ansible.builtin.apt:
+        deb: /tmp/{{ deb_agent }}
+
+    - name: "Create host on CheckMK server."
+      delegate_to: localhost
+      become: false
+      tribe29.checkmk.host:
+        server_url: "https://{{ checkmk_server_url }}/"
+        site: "{{ checkmk_site_name }}"
+        automation_user: "automation"
+        automation_secret: "{{ checkmk_automation_secret }}"
+        folder: "{{ checkmk_agent_folder | default(omit) }}"
+        host_name: "{{ inventory_hostname }}"
+        #attributes: "{{ checkmk_agent_host_attributes }}"
+        state: "present"
+        validate_certs: "{{ checkmk_agent_server_validate_certs | bool }}"
+      register: checkmk_agent_create_result
+      failed_when: |
+        (checkmk_agent_create_result.failed == true) and
+        ("The host is already part of the specified target folder" not in checkmk_agent_create_result.msg)
+
+    - name: Print checkmk_agent_create_result variable
+      debug:
+        var: checkmk_agent_create_result
+
+    - name: "Add newly discovered services on host."
+      delegate_to: localhost
+      become: no
+      tribe29.checkmk.discovery:
+        server_url: "https://{{ checkmk_server_url }}/"
+        site: "{{ checkmk_site_name }}"
+        automation_user: "automation"
+        automation_secret: "{{ checkmk_automation_secret }}"
+        host_name: "{{ inventory_hostname }}"
+        state: "fix_all"
+        validate_certs: "{{ checkmk_agent_server_validate_certs | bool }}"
+
+    - name: "Activate changes on all sites including foreign changes"
+      delegate_to: localhost
+      become: no
+      tribe29.checkmk.activation:
+        server_url: "https://{{ checkmk_server_url }}/"
+        site: "{{ checkmk_site_name }}"
+        automation_user: "automation"
+        automation_secret: "{{ checkmk_automation_secret }}"
+        force_foreign_changes: true
+        validate_certs: "{{ checkmk_agent_server_validate_certs | bool }}"
+      run_once: true
