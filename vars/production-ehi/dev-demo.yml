@@ -1,7 +1,7 @@
 ---
 # Machine specs
 scsi_disk_layout:
-  scsi0: "vm-storage:15,format=raw"
+  scsi0: "vm-storage:15,format=raw,discard=on,ssd=1"
 amount_of_memory: "3072"
 minimum_memory: "2048"
 number_of_vcpus: "1"
