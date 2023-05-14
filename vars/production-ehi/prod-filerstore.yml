@@ -1,0 +1,13 @@
+---
+# Machine specs
+scsi_disk_layout:
+  scsi0: "vm-storage:60,format=raw,discard=on,ssd=1"
+  scsi1: "vm-storage:200,format=raw,discard=on,ssd=1"
+amount_of_memory: 32768
+number_of_vcpus: 16
+ip_range:
+  - start: 10.24.3.160
+    end: 10.24.3.163
+starting_number: 1
+vm_name: prod-filerstore
+vm_description: "Production Filer Store"
