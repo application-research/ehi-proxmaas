@@ -8,3 +8,4 @@ vars/secrets.yml
 # Testing cruft
 test.py
 vm_details.json
+.vscode/**
