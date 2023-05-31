@@ -106,7 +106,7 @@
         onboot: false
         # Set machines to boot from network first, then hard disk
         boot: nc
-        bootdisk: net0,scsi0
+        bootdisk: scsi0
         cpu: host
         node: "{{ proxmox_nodes[item % 8] }}"
         scsihw: "virtio-scsi-single"
