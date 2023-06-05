@@ -1,0 +1,13 @@
+---
+# Machine specs
+scsi_disk_layout:
+  scsi0: "vm-storage:50,format=raw,discard=on,ssd=1"
+  scsi1: "vm-storage:500,format=raw,discard=on,ssd=1"
+amount_of_memory: 16384
+number_of_vcpus: 8
+ip_range:
+  - start: 10.24.3.55
+    end: 10.24.3.56
+starting_number: 1
+vm_name: prod-moosefs-ml
+vm_description: "Production MooseFS Metalogger nodes"
