@@ -108,7 +108,7 @@
         boot: nc
         bootdisk: scsi0
         cpu: host
-        node: "{{ proxmox_nodes[item % 8] }}"
+        node: "{{ proxmox_nodes[item % 2] }}"
         scsihw: "virtio-scsi-single"
         scsi: "{{ scsi_disk_layout }}"
         net:
