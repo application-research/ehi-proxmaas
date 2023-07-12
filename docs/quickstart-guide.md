@@ -7,7 +7,7 @@ ProxMAAS allows for you to define virtual hosts in variable files and then creat
 
 1) In the ehi-proxmaas playbook, create a new machine definition (variable) file that defines the new hosts you want to make:
 ```
-user@workstation:~/projects/estuary-hosted-infrastructure$ cat ./playbooks/ehi-proxmaas/vars/production-ehi/prod-garage.yml 
+user@workstation:~/projects/ehi-proxmaas$ cat vars/production-ehi/prod-garage.yml 
 ---
 # Machine specs
 scsi_disk_layout:
