@@ -1,12 +1,11 @@
 
 # ProxMAAS Quick Start Guide
 
-ProxMAAS allows for you to define virtual hosts in variable files and then create them automatically. New hosts will be created on Proxmox and managed by MAAS.
+ProxMAAS allows for you to define virtual hosts in variable files and then create them automatically. New hosts will be created inside Proxmox, booted, then automatically installed and managed by MAAS.
 
+## Creating machine definitions (for spawning VMs)
 
-## Creating VMs
-
-1) In the ehi-proxmaas playbook, create a new variable file that defines the new host you want to make:
+1) In the ehi-proxmaas playbook, create a new machine definition (variable) file that defines the new hosts you want to make:
 ```
 pcadmin@workstation:~/projects/estuary-hosted-infrastructure$ cat ./playbooks/ehi-proxmaas/vars/production-ehi/prod-garage.yml 
 ---
@@ -21,21 +20,37 @@ ip_range:
 starting_number: 1
 vm_name: prod-garage
 vm_description: "Production GarageHQ S3"
-dns_record_type: "A"		# Variables for Technitium DNS, no record will be created if 'dns_record_type' is not defined
 ```
+
+Here's a rough breakdown of what each of those do:
+
+* scsi_disk_layout: What disks the VM should have. scsi0 is always the root disk, vm-storage represents the Proxmox storage pool that will be used (always use vm-storage), 300 represents the number of gibibytes (GiB) assigned to that disk, and the rest are common formatting options which you should leave alone unless told otherwise. You can specify additional disks as scsi1, scsi2 etc in the same format.
+
+* amount_of_memory: The amount of memory for the VM, specified in mebibytes (MiB). Should always be a multiple of 1024.
+
+* number_of_vcpus: The amount of virtual CPUs assigned to the VM. This cannot exceed 96 due to physical limitations, but should usually never exceed 48, and should always be a multiple of 2.
+
+* ip_range: This controls both what IP addresses are assigned, as well as **how many machines will be spawned**. You can define a single machine per definition, or define an IP range containing multiple machines. They will be named according to the number of total IPs + the starting_number you specify.
+
+* starting_number: The starting number for the set of VMs. Setting this to "1" will result in machines being spawned as "prod-garage01, prod-garage02 ...", setting it to a higher number will result in the VMs starting at that higher number.
+
+* vm_name: The name to assign to the VM in DNS, MAAS and Proxmox
+
+* vm_description: A useful description that will appear in Proxmox explaining what the VM is and does.
+
+Once you have created **and committed** your machine definition...
 
 2) Run the spawn.yml playbook in ProxMAAS and define a {{ machine_details }} variable like so:
 ```
-pcadmin@workstation:~/projects/estuary-hosted-infrastructure$ ansible-playbook-ehi playbooks/ehi-proxmaas/spawn.yml --vault-id proxmaas@~/.ehi-vault/proxmaas --extra-vars "machine_details=prod-garage"
+user@workstation:~/projects/ehi-proxmaas$ ansible-playbook spawn.yml --extra-vars "machine_details=prod-garage"
 ```
-
 
 ## Destroying VMs
 
-The process for destroying VMs is quite similar, you just need to ensure the VMs in questions are shut off and prepare to answer the following interactive questions:
+The process for destroying VMs is quite similar, but is interactive. Prior to destroying VMs, make sure they are powered off.
 
 ```
-pcadmin@workstation:~/projects/estuary-hosted-infrastructure$ ansible-playbook-ehi playbooks/ehi-proxmaas/destroy.yml --vault-id proxmaas@~/.ehi-vault/proxmaas  --extra-vars "machine_details=prod-garage"
+user@workstation:~/projects/ehi-proxmaas$ ansible-playbook destroy.yml
 ...
 
 TASK [Set the VM name for the VMs] **************************************************************************************************************************************
