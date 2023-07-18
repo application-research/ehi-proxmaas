@@ -10,3 +10,4 @@ ip_range:
 starting_number: "1"
 vm_name: staff-schreck
 vm_description: "Schreck's personal machine"
+dns_record_type: "A"
